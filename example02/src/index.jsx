@@ -2,7 +2,7 @@
 import { lazy } from "solid-js";
 import { render } from "solid-js/web";
 import { Router, Route } from "@solidjs/router";
-import { loadUser } from "./pages/users/[id]";
+import {loadUser} from "./pages/users/[id].data.js";
 
 const Home = lazy(() => import('./pages/Home'))
 const User = lazy(() => import('./pages/users/[id]'))
