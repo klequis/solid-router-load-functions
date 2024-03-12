@@ -1,4 +1,5 @@
 import { createAsync } from "@solidjs/router";
+import { getUser } from "./[id].data";
 
 export default function Users(props) {
   const user = createAsync(() => getUser(props.params.id));
