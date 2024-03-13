@@ -14,8 +14,11 @@ const User = lazy(() => import("./pages/users/[id].js"));
 function loadUser({params, location}) {
   // do loading
 }
+```
 
-// Pass it in the route definition
+The load function is then passed in the `<Route>` definition
+
+```jsx
 <Route path="/users/:id" component={User} load={loadUser} />;
 ```
 
