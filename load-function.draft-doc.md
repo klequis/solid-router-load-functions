@@ -1,6 +1,6 @@
 ## Load Functions
 
-Even with smart caches, we may have waterfalls both with view logic and with lazy loaded code. With load functions, we can instead start fetching the data parallel to loading the route, so we can use the data as soon as possible. The load function is called when the Route is loaded or eagerly when links are hovered.
+Even with smart caches, we may have waterfalls with both view logic and lazy-loaded code. With load functions, data fetching is started parallel to loading the route, so it can be used as soon as possible. The load function is called when the Route is loaded, or eagerly when links are hovered.
 
 As its only argument, the load function is passed an object that you can use to access route information:
 
@@ -22,7 +22,7 @@ The load function is then passed in the `<Route>` definition
 <Route path="/users/:id" component={User} load={loadUser} />;
 ```
 
-A common pattern is to export the load function and data wrappers that correspond to a route in a dedicated route.data.js file. This way, the data function can be imported without loading anything else.
+A common pattern is to export the load function and data wrappers that correspond to a route from a dedicated route.data.js file. This way, the data function can be imported without loading anything else.
 
 ```jsx
 // src/pages/users/[id].data.js
@@ -32,20 +32,27 @@ export const getUser = cache(async (id) => {
   return (await fetch(`https://swapi.tech/api/people/${id}/`)).json();
 }, "getUser");
 
-export function loadUser({ params, location }) {
-  void getUser(params.id);
+export function loadUser({ params, location, intent }) {
+  return getUser(params.id);
 }
 ```
 
+`loadUser` is passed an object which contains `params`, `location` and `intent`.
+Here we are only using `params`. The return value of the load function is passed to the page component when called at any time other than "preload", so you can initialize things in there, or use our new [Data APIs](/reference/solid-router/data-apis/create-async). See [Load](/reference/solid-router/load-functions/load) details.
 
+Using `cache` has several benefits including preventing duplicate fetching. See [cache](https://docs.solidjs.com/reference/solid-router/data-apis/cache) for details.
 
-The return value of the load function is passed to the page component when called at anytime other than "preload", so you can initialize things in there, or use our new Data APIs
+`[id]` in `[id].data.js` is a convention and not required.
 
 <div style="background-color: darkorange; padding: 5px; color: white">
-Insert link to "Data APIs" section of this doc.
+Yes, it appears that the results of `getUser` is returned to `loadUser` which returns to the `load` property.
 </div>
 
-`loadUser` is called from the <Route>
+<div style="background-color: darkorange; padding: 5px; color: white">
+The above link is in create-async. In the actual doc you cannot navigate to to "Data API's" but try this link when the doc is hosted to see what happens: [Data APIs](/reference/solid-router/data-apis/)
+</div>
+
+`loadUser` is called from the `<Route>`
 
 ```jsx
 // src/index.jsx
@@ -63,8 +70,31 @@ render(() => (
     <Route
       path="/users/:id"
       component={User}
-      load={loadUser} 
+      load={loadUser}
     />
   </Router>
 ), document.getElementById("root"));
 ```
+
+`[id].jsx` contains the component that gets rendered.
+
+```jsx
+// [id].jsx
+import { createAsync } from "@solidjs/router";
+import { getUser } from "./[id].data";
+
+export default function Users(props) {
+  console.log('Users.props', props)
+  const user = createAsync(() => getUser(props.params.id));
+  return (
+    <>
+      <h1>User</h1>
+      <div>
+        <pre>{JSON.stringify(user(), null, 2)}</pre>
+      </div>
+    </>
+  )
+}
+```
+
+[`createAsync`](/reference/solid-router/data-apis/create-async) expects a promise and turns it into a [Signal](/routes/concepts/signals)
