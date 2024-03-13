@@ -5,5 +5,5 @@ export const getUser = cache(async (id) => {
 }, "getUser");
 
 export function loadUser({ params, location }) {
-  void getUser(params.id);
+  return getUser(params.id);
 }
